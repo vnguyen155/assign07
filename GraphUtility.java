@@ -28,24 +28,32 @@ public class GraphUtility {
 	 */
 	public static <Type> List<Type> shortestPath(List<Type> sources, List<Type> destinations, Type srcData,
 			Type dstData) {
-		checkSizes(sources, destinations);
+		if (sources == null || destinations == null || sources.size() != destinations.size()) {
+			throw new IllegalArgumentException("Uneven number of sources and destinations");
+		}
 
-		// Breadth-First Search ignores weights, so every edge gets weight 1
-		Graph<Type> graph = new Graph<>();
+		Graph<Type> graph = new Graph<>(); // construct a graph from the given information
 		for (int i = 0; i < sources.size(); i++) {
 			graph.addEdge(sources.get(i), destinations.get(i), 1);
 		}
 
-		checkVertices(graph, srcData, dstData);
-
-		List<Type> path = graph.breadthFirstSearch(srcData, dstData);
-
-		// An empty path means dstData cannot be reached
-		if (path.isEmpty()) {
-			throw new IllegalArgumentException("There is no path from " + srcData + " to " + dstData);
+		// check if sources and destinations exists
+		if (!graph.containsVertex(srcData)) {
+			throw new IllegalArgumentException("Source does not exist in the graph");
+		}
+		if (!graph.containsVertex(dstData)) {
+			throw new IllegalArgumentException("Destination does not exist in the graph");
 		}
 
-		return path;
+		// BFS to track shortest path
+		List<Type> result = graph.breadthFirstSearch(srcData, dstData);
+
+		// check if no path is found (result list is empty)
+		if (result.isEmpty()) {
+			throw new IllegalArgumentException("No path exists between the source and destination.");
+		}
+
+		return result;
 	}
 
 	/**
@@ -65,28 +73,32 @@ public class GraphUtility {
 	 */
 	public static <Type> List<Type> shortestWeightedPath(List<Type> sources, List<Type> destinations,
 			List<Double> weights, Type srcData, Type dstData) {
-		checkSizes(sources, destinations);
-
-		// Every edge needs its own weight
-		if (weights.size() != sources.size()) {
-			throw new IllegalArgumentException("Weights list size does not match the number of edges");
+		if (sources == null || destinations == null || weights == null || sources.size() != destinations.size()
+				|| sources.size() != weights.size()) {
+			throw new IllegalArgumentException("Number of sources, destinations, and weights must be the same.");
 		}
 
-		Graph<Type> graph = new Graph<>();
+		Graph<Type> graph = new Graph<>(); // construct a graph from the given information
 		for (int i = 0; i < sources.size(); i++) {
 			graph.addEdge(sources.get(i), destinations.get(i), weights.get(i));
 		}
 
-		checkVertices(graph, srcData, dstData);
-
-		List<Type> path = graph.dijkstrasAlgorithm(srcData, dstData);
-
-		// An empty path means dstData cannot be reached
-		if (path.isEmpty()) {
-			throw new IllegalArgumentException("There is no path from " + srcData + " to " + dstData);
+		// check if sources and destinations exists
+		if (!graph.containsVertex(srcData)) {
+			throw new IllegalArgumentException("Source does not exist in the graph");
+		}
+		if (!graph.containsVertex(dstData)) {
+			throw new IllegalArgumentException("Destination does not exist in the graph");
 		}
 
-		return path;
+		List<Type> result = graph.dijkstrasAlgorithm(srcData, dstData);
+
+		// check if no path is found (result list is empty)
+		if (result.isEmpty()) {
+			throw new IllegalArgumentException("No path exists between the source and destination.");
+		}
+
+		return result;
 	}
 
 	/**
@@ -100,47 +112,16 @@ public class GraphUtility {
 	 *                                  graph has a cycle
 	 */
 	public static <Type> List<Type> sort(List<Type> sources, List<Type> destinations) {
-		checkSizes(sources, destinations);
-
-		// topological sort ignores weights, so every edge gets weight 1
+		if (sources == null || destinations == null || sources.size() != destinations.size()) {
+			throw new IllegalArgumentException("Uneven number of sources and destinations");
+		}
+		
 		Graph<Type> graph = new Graph<>();
-		for (int i = 0; i < sources.size(); i++) {
+		for(int i = 0; i < sources.size(); i++) {
 			graph.addEdge(sources.get(i), destinations.get(i), 1);
 		}
-
-		// topoSort throws the exception itself if the graph has a cycle
+		
 		return graph.topoSort();
 	}
 
-	/**
-	 * Checks that the sources and destinations lists have the same size.
-	 *
-	 * @param <Type>       - the type of data stored in the vertices
-	 * @param sources      - the start data of each edge
-	 * @param destinations - the end data of each edge
-	 * @throws IllegalArgumentException if the sizes do not match
-	 */
-	private static <Type> void checkSizes(List<Type> sources, List<Type> destinations) {
-		if (sources.size() != destinations.size()) {
-			throw new IllegalArgumentException("Sources and destinations have different sizes");
-		}
-	}
-
-	/**
-	 * Checks that both srcData and dstData are in the graph.
-	 *
-	 * @param <Type>  - the type of data stored in the vertices
-	 * @param graph   - the graph to check
-	 * @param srcData - the data of the start vertex
-	 * @param dstData - the data of the end vertex
-	 * @throws IllegalArgumentException if srcData or dstData is not in the graph
-	 */
-	private static <Type> void checkVertices(Graph<Type> graph, Type srcData, Type dstData) {
-		if (!graph.containsVertex(srcData)) {
-			throw new IllegalArgumentException(srcData + " is not in the graph");
-		}
-		if (!graph.containsVertex(dstData)) {
-			throw new IllegalArgumentException(dstData + " is not in the graph");
-		}
-	}
 }
